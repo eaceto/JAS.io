@@ -38,66 +38,64 @@ How to use
 
 1) Import the header file
 
->   #import "JASio.h"
+>        #import "JASio.h"
 
 2) Create an instance of JAS.io and load the remote script
 
->   self.jasio = [[JASio alloc] init];
->   // enable or disable JAS.io log. This will help you to find issues
->   [self.jasio setLogEnabled:YES];
->   // load the remote script
->   [self.jasio loadRemoteScriptURL:kRemoteScriptURL readyToConnect:^() {
->            
->     // assign blocks to handle events (connection, disconnect, errors, etc)
->                       
->     // ready to execute
+>        self.jasio = [[JASio alloc] init];
+>        // enable or disable JAS.io log. This will help you to find issues
+>        [self.jasio setLogEnabled:YES];
+>        // load the remote script
+>        [self.jasio loadRemoteScriptURL:kRemoteScriptURL readyToConnect:^() {
 >           
->   } onLoadError:^(NSDictionary* error) {
->     NSLog(@"Client did receive an error when loading remote script: %@",error);
->   }];
+>        // assign blocks to handle events (connection, disconnect, errors, etc)>                       
+>        // ready to execute
+>        } onLoadError:^(NSDictionary* error) {
+>            NSLog(@"Client did receive an error when loading remote script: %@",error);
+>        }];
 
 3) When the script is loaded register blocks for general purposes events (connection, disconnect, errors, etc)
 
->   __weak JASio* weakJasio = self.jasio;
+>        __weak JASio* weakJasio = self.jasio;
 >            
->   // a block for handling connections.
->   // start sending messages when the client is connected
->   self.jasio.onConnect = ^() {
->     NSLog(@"Client connected");
->   };
->            
->   // a block for handling disconnections
->   self.jasio.onDisconnect = ^() {
->     NSLog(@"Client disconnected");
+>        // a block for handling connections.
+>        // start sending messages when the client is connected
+>        self.jasio.onConnect = ^() {
+>            NSLog(@"Client connected");
+>        };
+>           
+>        // a block for handling disconnections
+>        self.jasio.onDisconnect = ^() {
+>            NSLog(@"Client disconnected");
 >                
->     /// here you can fire a reconnection if needed
->     /// if ([weakJasio reconnect]) NSLog(@"reconnected");
->   };
->            
->   // a block for handling errors
->   self.jasio.onError = ^(NSString* tag, NSDictionary* error) {
->     NSLog(@"Client onError %@ - %@",tag,error);
->   };
->            
->   // a block for handling connection errors
->   self.jasio.onConnectError = ^(NSDictionary* error) {
->     NSLog(@"Connection failed with error: %@",error);
->   };
->            
->   // a block for handling timeout
->   self.jasio.onTimeout = ^() {
->     NSLog(@"Connection failed with timeout");
->   };
+>            /// here you can fire a reconnection if needed
+>            /// if ([weakJasio reconnect]) NSLog(@"reconnected");
+>        };
+>               
+>        // a block for handling errors
+>        self.jasio.onError = ^(NSString* tag, NSDictionary* error) {
+>            NSLog(@"Client onError %@ - %@",tag,error);
+>        };
+>                
+>        // a block for handling connection errors
+>        self.jasio.onConnectError = ^(NSDictionary* error) {
+>            NSLog(@"Connection failed with error: %@",error);
+>        };
+>                
+>        // a block for handling timeout
+>        self.jasio.onTimeout = ^() {
+>            NSLog(@"Connection failed with timeout");
+>        };
            
 4) Once the onConnect event is received you can register for events and start emitting
 
->   BOOL eventRegistered = [weakJasio on:@"message" callback:^(NSArray* args) {
->     NSLog(@"Client received message with args: %@",args);
->   }];
->   // check if remote host could register the event
->   if (!eventRegistered) NSLog(@"Not listening for events");
+>        BOOL eventRegistered = [weakJasio on:@"message" callback:^(NSArray* args) {
+>            NSLog(@"Client received message with args: %@",args);
+>        }];
+>        // check if remote host could register the event
+>        if (!eventRegistered) NSLog(@"Not listening for events");
 
->   // send a hello message
->   BOOL sent = [weakJasio emit:@"message" json:@{@"text":@"Hello JAS.io!"}];
->   if (!sent) NSLog(@"Message not sent");
+>        // send a hello message
+>        BOOL sent = [weakJasio emit:@"message" json:@{@"text":@"Hello JAS.io!"}];
+>        if (!sent) NSLog(@"Message not sent");
 
