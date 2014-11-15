@@ -44,7 +44,7 @@
                     NSLog(@"Client received message with args: %@",args);
                 }];
                 // check if remote host could register the event
-                if (!eventRegistered) NSLog(@"Not listening to events");
+                if (!eventRegistered) NSLog(@"Not listening for events");
 
                 // send a hello message
                 BOOL sent = [weakJasio emit:@"message" json:@{@"text":@"Hello JAS.io!"}];
