@@ -1,0 +1,164 @@
+<!--
+    JAS.io Backend
+
+    Created by Ezequiel Aceto on 11/13/14.
+    https://github.com/eaceto/JAS.io
+-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>JAS.io - https://github.com/eaceto/JAS.io</title>
+        <script src="https://cdn.socket.io/socket.io-1.1.0.js"></script>
+    </head>
+    <body>
+    <script>
+
+        var onSocketConnected = null;
+        var onSocketDisconnected = null;
+        var onSocketDidReceiveMessage = null;
+        var onSocketConnectError = null;
+        var onSocketTimeout = null;
+        var onDataSent = function(event, data) {
+            console.log("data sent: " + event + " - " + err);
+        };
+        var onSocketError = function(tag, err) {
+            console.log(tag + ": " + err);
+        };
+
+        var __socket__ = null;
+
+        var reconnection = false;
+        var reconnectionDelay = 1000;
+        var reconnectionDelayMax = 5000;
+        var timeout = 20000;
+
+        /* connect to Host */
+        function connect(url) {
+            try {
+                // console.log("Connecting to " + url);
+
+                __socket__ = io(url, {
+                    "reconnection": reconnection,
+                    "reconnectionDelay": reconnectionDelay,
+                    "reconnectionDelayMax": reconnectionDelayMax,
+                    "timeout": timeout,
+                    "force new connection": true
+                });
+
+                __socket__.on('connect', function () {
+                    // notify connection
+                    // console.log("Connected");
+
+                    if (onSocketConnected) {
+                        onSocketConnected();
+                    }
+                });
+
+                __socket__.on('connect_error', function (err) {
+                    // console.log("Connect error: " + err);
+
+                    if (onSocketConnectError) {
+                        onSocketConnectError(err);
+                    }
+                });
+
+                __socket__.on('disconnect', function () {
+                    // notify disconnection
+                    // console.log("Disconnected");
+
+                    if (onSocketDisconnected) {
+                        onSocketDisconnected();
+                    }
+                });
+
+                __socket__.on('connect_timeout', function() {
+                    // console.log("Connection timeout");
+
+                    if (onSocketTimeout) {
+                        onSocketTimeout();
+                    }
+                });
+
+                __socket__.on('error', function (err) {
+                    //notify new message
+                    // console.log("On error: " + err);
+
+                    if (onSocketError) {
+                        onSocketError("error",err);
+                    }
+                });
+
+                return true;
+            } catch(err) {
+                // notify connection error
+                // console.log("Error on connect: " + err);
+
+                if (onSocketError) {
+                    onSocketError("connect",err);
+                }
+            }
+            return false;
+        }
+
+        function emitEventData(event, dataToSend) {
+            try {
+                if (__socket__) {
+                    __socket__.emit(event, dataToSend, function (data) {
+                        //notify callback
+                        // console.log("call emit callback " +  onDataSent);
+                        if (onDataSent) {
+                            onDataSent(event,data);
+                        }
+                    });
+                    return true;
+                }
+            } catch (err) {
+                if (onSocketError) {
+                    onSocketError("emit",err);
+                }
+            }
+            return false;
+        }
+
+        function registerReceiver(event, func) {
+            try {
+                if (__socket__) {
+                    __socket__.on(event, func);
+                    return true;
+                }
+            } catch (err) {
+                if (onSocketError) {
+                    onSocketError("emit",err);
+                }
+            }
+            return false;
+        }
+
+        function disconnect() {
+            try {
+                if (__socket__) {
+                    __socket__.disconnect();
+                }
+            } catch (err) {
+                if (onSocketError) {
+                    onSocketError("disconnect",err);
+                }
+            }
+        }
+
+        function clear() {
+            try {
+                disconnect();
+
+                reconnection = false;
+                reconnectionDelay = 1000;
+                reconnectionDelayMax = 5000;
+                timeout = 20000;
+            } catch (err) {}
+        }
+
+    </script>
+    </body>
+</html>
