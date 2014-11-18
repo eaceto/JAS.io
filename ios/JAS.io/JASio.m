@@ -21,7 +21,7 @@
 @property (nonatomic, strong) NSString* remoteScriptURL;
 
 @property (nonatomic) BOOL isConnecting, isReadyToConnect, isConnected, shouldReconnect;
-@property (nonatomic) int reconnectionDelay, reconnectionDelayMax, timeout;
+@property (nonatomic) int reconnectionDelay, reconnectionDelayMax, timeout, reconnectionAttempts;
 
 @property (nonatomic, copy) void(^readyToConnectBlock)();
 @property (nonatomic, copy) void(^errorBlock)(NSDictionary* error);
@@ -101,6 +101,7 @@
                   port:(NSInteger)port
                 secure:(BOOL)secure
              reconnect:(BOOL)reconnect
+  reconnectionAttempts:(int)reconnectionAttempts
      reconnectionDelay:(int)reconnectionDelay
   reconnectionDelayMax:(int)reconnectionDelayMax
                timeout:(int)timeout {
@@ -109,6 +110,7 @@
     _reconnectionDelayMax = reconnectionDelayMax;
     _timeout = timeout;
     _shouldReconnect = reconnect;
+    _reconnectionAttempts = reconnectionAttempts;
     
     return [self connectWithHost:host port:port secure:secure];
 }
@@ -138,6 +140,8 @@
     [_javascriptContext evaluateScript:[NSString stringWithFormat:@"reconnectionDelayMax=%li;",(long)_reconnectionDelayMax]];
     
     [_javascriptContext evaluateScript:[NSString stringWithFormat:@"timeout=%li;",(long)_timeout]];
+    
+    [_javascriptContext evaluateScript:[NSString stringWithFormat:@"reconnectionAttempts=%li;",(long)_reconnectionAttempts]];
     
     [_javascriptContext evaluateScript:[NSString stringWithFormat:@"reconnection=%@;",_shouldReconnect ? @"true" : @"false"]];
     

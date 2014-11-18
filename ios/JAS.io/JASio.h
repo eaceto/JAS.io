@@ -35,6 +35,7 @@
                   port:(NSInteger)port
                 secure:(BOOL)secure
              reconnect:(BOOL)reconnect
+  reconnectionAttempts:(int)reconnectionAttempts
      reconnectionDelay:(int)reconnectionDelay
   reconnectionDelayMax:(int)reconnectionDelayMax
                timeout:(int)timeout;
