@@ -20,6 +20,12 @@
     var onSocketDidReceiveMessage = null;
     var onSocketConnectError = null;
     var onSocketTimeout = null;
+    var onSocketReconnectionFailed = null;
+    var onSocketReconnectionError = null;
+    var onSocketReconnectionAttempt = null;
+    var onSocketReconnecting = null;
+    var onSocketReconnected = null;
+
     var onDataSent = function(event, data) {
         console.log("data sent: " + event + " - " + err);
     };
@@ -35,10 +41,12 @@
     var reconnectionDelayMax = 5000;
     var timeout = 20000;
 
+    var consoleDebug = false;
+
     /* connect to Host */
     function connect(url) {
         try {
-            // console.log("Connecting to " + url);
+            if (consoleDebug) console.log("Connecting to " + url);
 
             __socket__ = io(url, {
                 "reconnection": reconnection,
@@ -49,48 +57,100 @@
                 "force new connection": true
             });
 
+            // Fired upon a successful connection.
             __socket__.on('connect', function () {
-                // notify connection
-                // console.log("Connected");
+                if (consoleDebug) console.log("connected");
 
                 if (onSocketConnected) {
                     onSocketConnected();
                 }
             });
 
+            // Fired upon a successful reconnection.
+            __socket__.on('reconnect', function () {
+                if (consoleDebug) console.log("reconnect");
+
+                if (onSocketReconnected) {
+                    onSocketReconnected();
+                }
+                else if (onSocketConnected) { // in case reconnection event is not handled
+                    onSocketConnected();
+                }
+            });
+
+
+            // Fired upon a connection error.
             __socket__.on('connect_error', function (err) {
-                // console.log("Connect error: " + err);
+                if (consoleDebug) console.log("connect error: " + err);
 
                 if (onSocketConnectError) {
                     onSocketConnectError(err);
                 }
             });
 
+            // Fired upon a disconnection.
             __socket__.on('disconnect', function () {
-                // notify disconnection
-                // console.log("Disconnected");
+                if (consoleDebug) console.log("disconnected");
 
                 if (onSocketDisconnected) {
                     onSocketDisconnected();
                 }
             });
 
+            // Fired upon a connection timeout.
             __socket__.on('connect_timeout', function() {
-                // console.log("Connection timeout");
+                if (consoleDebug) console.log("Connection timeout");
 
                 if (onSocketTimeout) {
                     onSocketTimeout();
                 }
             });
 
+            // Fired on error
             __socket__.on('error', function (err) {
-                //notify new message
-                // console.log("On error: " + err);
+                if (consoleDebug) console.log("On error: " + err);
 
                 if (onSocketError) {
                     onSocketError("error",err);
                 }
             });
+
+            // Fired when couldn’t reconnect within reconnectionAttempts
+            __socket__.on('reconnect_failed', function () {
+                if (consoleDebug) console.log("reconnect_failed");
+
+                if (onSocketReconnectionFailed) {
+                    onSocketReconnectionFailed();
+                }
+            });
+
+            // Fired upon a reconnection attempt error.
+            __socket__.on('reconnect_error', function (err) {
+                if (consoleDebug) console.log("reconnect_error: " + err);
+
+                if (onSocketReconnectionError) {
+                    onSocketReconnectionError(err);
+                }
+            });
+
+            // Fired upon an attempt to reconnect.
+            __socket__.on('reconnect_attempt', function () {
+                if (consoleDebug) console.log("reconnect_attempt");
+
+                if (onSocketReconnectionAttempt) {
+                    onSocketReconnectionAttempt();
+                }
+            });
+
+            // Fired upon an attempt to reconnect.
+            __socket__.on('reconnecting', function (attempt) {
+                if (consoleDebug) console.log("reconnecting");
+
+                if (onSocketReconnecting) {
+                    onSocketReconnecting(attempt);
+                }
+            });
+
 
             return true;
         } catch(err) {
